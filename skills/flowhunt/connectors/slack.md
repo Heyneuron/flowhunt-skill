@@ -112,8 +112,13 @@ In a new agent session, call a Slack tool (e.g. list channels). If it returns th
 
 During audit:
 - List channels the user is a member of
-- Count messages sent by the user in the last 30 days, per channel
-- Top 20 user-authored messages by recency (first 80 chars each) for topic inference
-- NO full message bodies, NO DMs by default (user can opt in if they want)
+- Count the user's own messages in the last 30 days, per channel
+- **Full content** of the user's top ~100 messages (sorted by recency), plus channel name + timestamp
+- Top ~50 recent DM threads with the user's own outbound message content
 
-This is metadata + lightweight previews, not surveillance. Communicate this to the user when they hesitate about connecting Slack.
+Content is intentional — not a privacy leak. FlowHunt's whole job is finding automation patterns in how the user communicates, and "you wrote the same two paragraphs 12 times this week" only shows up when you actually read the two paragraphs. Counts alone produce vague audits.
+
+Privacy posture to communicate to the user when asked:
+- All data stays local. The MCP tool fetches Slack, the agent (running on the user's machine) reads it, and the audit file is written to `~/.flowhunt/audits/` on their disk. No FlowHunt cloud. No third-party telemetry.
+- The agent reading the data is the same agent the user opened FlowHunt in — whatever LLM they already chose to trust with their shell.
+- If the user does not want Slack content ingested, they answer `no` to the Slack intake question in setup and the connector is skipped entirely. We default to reading content; users can default out.

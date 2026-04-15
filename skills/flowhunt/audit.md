@@ -67,23 +67,29 @@ Probe for available MCP tools and call the ones that exist. Do NOT prompt the us
 
 ### Gmail (if available)
 
-- `claude-code` / Claude Desktop: call `mcp__claude_ai_Gmail__gmail_search_messages` with query `newer_than:30d` and `max_results=500`. Collect date, from, subject, snippet. **Do not call `gmail_read_message`** — metadata is enough.
+- `claude-code` / Claude Desktop: call `mcp__claude_ai_Gmail__gmail_search_messages` with query `newer_than:30d` and `max_results=500`. Collect `date`, `from`, `subject`, `snippet` (the snippet is the first ~200 chars of the body, returned automatically by the search API — use it, that's the whole point). For the top 20 emails by repeated sender or repeated subject pattern, you MAY additionally call `mcp__claude_ai_Gmail__gmail_read_message` to get full bodies — do this only when the pattern is interesting enough to justify the extra context tokens.
 - `codex`: the Gmail app exposes tools under its own namespace — inspect your available tool list for anything matching `Gmail` / `gmail_*` and call the search equivalent.
 - `gemini`: run `/gmail/search newer_than:30d max_results:500` or call the Workspace extension's search tool.
-- `opencode`: call the IMAP MCP server's search tool (name depends on which server, typically `search_emails` or `list_messages`).
+- `opencode`: call the IMAP MCP server's search tool (name depends on which server, typically `search_emails` or `list_messages`). IMAP returns envelopes by default; for the top 20 patterns, fetch the full body.
 - No Gmail tool available: mark `gmail: unconnected` and continue.
+
+**Content is the whole point.** Do not limit yourself to counts and sender names. "User sends a lot of emails" is useless. "User sends ~14 emails per week replying to pricing questions with nearly identical wording" is a recommendation. You need content to produce recommendations.
 
 ### Google Calendar (if available)
 
-Same per-agent branching. List events for the last 30 days. Collect date, title, duration_minutes, attendee_count, recurring.
+Same per-agent branching. List events for the last 30 days. Collect date, title, duration_minutes, attendee_count, recurring. If event descriptions are exposed by the tool, include them for the top 20 recurring events — that's where "weekly 1:1 where the same 3 topics always come up" patterns live.
 
 ### Slack (if available)
 
-List channels the user is a member of, count messages sent by the user in the last 30 days per channel, and grab first 80 chars of their top 20 messages for topic inference. No full message bodies, no DMs by default.
+List the channels the user is a member of. For each channel, count the user's messages in the last 30 days, AND pull the **full content** of the user's top ~100 messages (sorted by recency). Include message text, channel name, timestamp. For DMs, pull the user's most recent messages per conversation (top ~50 threads) with full content.
+
+**Do not do metadata-only.** Slack audits are only valuable when you can see what the user is actually saying. "User spent 90 minutes across 6 channels" is a statistic; "User sent 12 messages this week answering 'kiedy będzie oferta gotowa' across 3 channels" is an automation recommendation. The content is the whole point of reading Slack.
+
+Privacy note for the user (say this out loud if they seem concerned): all data stays local, the agent reading it is the same agent they opened FlowHunt from, no FlowHunt cloud, no third-party telemetry. If they don't want content ingested, they can answer `no` to the Slack intake question and the connector is skipped entirely.
 
 ### Optional: iMessage / WhatsApp / Telegram / Discord
 
-Only if the user connected them during setup. Metadata only: contact counts, top 10 contacts by volume, no bodies unless explicitly asked.
+Only if the user connected them during setup. Pull message counts per contact/group plus **content** for the top ~50 recent user-sent messages per channel (same reasoning as Slack — counts alone produce vague audits). Do NOT ingest messages from other people in DMs without explicit permission — the user's own outbound messages are the main signal anyway.
 
 ## Step 3 — apply the audit prompt
 

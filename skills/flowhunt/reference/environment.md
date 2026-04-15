@@ -28,7 +28,18 @@ When you know which agent you are, you know what the shell can and cannot do. Th
 
 ### `codex`
 
-Codex CLI on macOS runs all tool calls through a **seatbelt sandbox** by default (`--full-auto` uses `workspace-write` policy). Confirmed blocked operations in `workspace-write`:
+Codex CLI on macOS runs all tool calls through a **seatbelt sandbox**. The sandbox mode is controlled by the `-s` / `--sandbox` flag or the `--full-auto` convenience alias.
+
+**`codex exec --full-auto` uses `workspace-write` by default. In `workspace-write` the entire network stack is blocked — empirically verified (April 2026):**
+
+| Test | Result |
+|---|---|
+| `curl https://www.google.com` | exit 6 — `Could not resolve host: www.google.com` (DNS refused at syscall level) |
+| `curl http://localhost:5600/api/0/info` | exit 7 — `Couldn't connect to server` (TCP connect refused at 0ms) |
+
+DNS resolution is blocked, outbound TCP is blocked, and **localhost is not exempt**. Running ActivityWatch or any other local HTTP service on the host does NOT make it reachable from Codex's sandboxed bash — the seatbelt denies `connect()` before the TCP stack even tries. This is not a FlowHunt bug and not a config issue on the host — it is the default sandbox policy.
+
+Other confirmed blocked operations in `workspace-write`:
 
 - `open -a <App>` — launching GUI applications is refused by the seatbelt policy. Codex wraps the failure as `SandboxDenied`, and stdout is moved to stderr in the error envelope.
 - `nohup <cmd> &` — the `nice` syscall is refused (`zsh:1: nice(5) failed: operation not permitted`).
@@ -36,18 +47,32 @@ Codex CLI on macOS runs all tool calls through a **seatbelt sandbox** by default
 - Writing to `~/Library/Logs/`, `~/Library/Application Support/` outside the workspace root — refused.
 - `open` with http/https URLs — macOS LaunchServices rejects the URL scheme from sandboxed shells with `kLSExecutableIncorrectFormat`.
 
-**Corollary:** when running inside Codex, **never attempt to launch ActivityWatch or open a browser programmatically**. Always defer to the user. For AW: instruct the user to click the tray icon. For browser URLs: print the URL prominently and ask the user to open it themselves.
+**FlowHunt is unusable under `workspace-write`** because the audit depends on reading ActivityWatch and MCP tools over HTTP. If you (the agent) detect `CODEX_THREAD_ID` set AND a baseline network probe fails (see probe below), stop the setup/audit immediately and tell the user one of these:
 
-Codex does allow:
+1. **Easiest:** run `flowhunt setup` / `flowhunt audit` from **interactive `codex`** (just `codex` without `exec --full-auto`). Interactive mode defaults to `on-request` approval which prompts per command and does not blanket-block network.
+2. **Dev-only:** `codex exec -s danger-full-access --full-auto "flowhunt setup"` — bypasses the entire sandbox, only acceptable if the user has accepted the risk and is running inside an already-isolated environment.
+3. **Different agent:** Claude Code, Gemini CLI, or OpenCode — none of them ship with a default sandbox that blocks localhost.
+
+**The network probe (use at the start of setup.md Step 2 and audit.md Step 0 when agent = `codex`):**
+
+```bash
+curl -fsS --max-time 2 http://localhost:5600/api/0/info > /dev/null 2>&1
+```
+
+If exit code is 7 AND the user confirms ActivityWatch is running on the host (browser at `http://localhost:5600` shows the dashboard), you are in a sandboxed Codex session and cannot proceed. Print the three options above and stop.
+
+**What `workspace-write` does allow** (also verified empirically or via the Codex source):
 - Reading files in the workspace and in standard user config paths
-- Running `curl` to localhost endpoints (unrestricted outbound to `127.0.0.1`)
-- Running `jq`, `grep`, `python` (for short non-binding scripts), `git`, `npm`, `node`, `uvx`, most Unix tools
-- Writing files inside the workspace directory
+- Running `jq`, `grep`, `python` (short non-binding scripts), `git`, `node`, `uvx`, most Unix tools
+- Writing files inside the workspace directory and `$TMPDIR`
 - Reading from `~/.codex/config.toml`, `~/.agents/skills/`, `~/.claude/skills/`
+- Executing other `codex` subcommands (`codex --help`, `codex mcp list`, etc.) although those emit a `WARNING: proceeding, even though we could not update PATH: Operation not permitted` because the subshell cannot mutate PATH
 
-That gives you enough to query AW (curl to localhost:5600 works) and to read/write config files (opencode.json, config.toml, etc.), but not to launch apps or bind ports.
+Use this for reading/writing config files (opencode.json, config.toml, etc.) but not for anything that touches network or GUI.
 
-If the user needs something that requires escaping the sandbox (e.g. installing Homebrew, running `brew install`, launching ActivityWatch the first time), tell them to run the command themselves in a separate terminal and come back.
+### Owning the past mistake
+
+Earlier versions of this file claimed "Running `curl` to localhost endpoints (unrestricted outbound to `127.0.0.1`)" under Codex `workspace-write`. **That was wrong — written from assumption, not from test.** Empirical verification (running `curl http://localhost:5600` and `curl https://www.google.com` from inside a real `codex exec --full-auto` session) showed both fail with different exit codes confirming a full network block. The claim is now corrected above. Lesson: never write environment facts without running them.
 
 ### `claude-code`
 
