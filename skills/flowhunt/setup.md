@@ -22,13 +22,23 @@ Say "ActivityWatch już chodzi, zbiera dane. Przechodzimy dalej." Skip to Step 2
 
 ### 1b. `NOT_RUNNING`
 
-ActivityWatch is installed but not running. Branch on OS (`uname -s`):
+ActivityWatch is installed but not running. Launch it using `scripts/aw-start.sh`. Do NOT chain commands with `&&` — inside sandboxed shells (notably Codex CLI on macOS with seatbelt) chained commands silently drop subsequent steps when the first one is refused. Run each step separately and inspect each status line.
 
-- **macOS**: `open -a ActivityWatch` then wait 5 seconds and re-run `scripts/aw-check.sh`. If still `NOT_RUNNING`, tell the user to click the ActivityWatch tray icon manually and say "odpaliłem, wracam".
-- **Linux**: instruct `aw-qt &` in their terminal.
-- **Windows**: instruct them to launch ActivityWatch from the Start menu.
+**Procedure (run each bullet as its own Bash call):**
 
-Wait for confirmation. Re-check. Do not proceed until you get `OK`.
+1. Run `scripts/aw-start.sh`. Read the single-line output:
+   - `ALREADY_RUNNING` — go straight to Step 2 of setup, ActivityWatch is healthy.
+   - `LAUNCHED` — the launch command was accepted. Continue to bullet 2.
+   - `FAILED:<reason>` or `UNSUPPORTED_OS` — skip to the manual fallback below.
+2. Wait 10 seconds for the app to finish booting. Use Bash: `sleep 10`.
+3. Run `scripts/aw-check.sh`. If `OK`, done. If still `NOT_RUNNING`, wait another 10 seconds and run it once more. On first launch macOS may be prompting the user for Accessibility / Screen Recording permissions — tell the user: "macOS prosi o uprawnienia do nagrywania ekranu i dostępności — zaakceptuj oba okna i wróć tutaj. ActivityWatch nie nagrywa ekranu, potrzebuje tego tylko do czytania tytułów okien."
+4. If after two waits `aw-check.sh` is still `NOT_RUNNING`, fall through to the manual fallback.
+
+**Manual fallback (when automated launch fails):**
+
+Tell the user, in their language: "Nie mogłem odpalić ActivityWatch automatycznie (to się zdarza w piaskownicy niektórych agentów). Otwórz go ręcznie: na macOS kliknij ikonę w Applications albo użyj Spotlight (Cmd+Space → 'ActivityWatch'). Na Linuxie odpal `aw-qt` w osobnym terminalu. Na Windowsie z menu Start. Napisz 'gotowe' kiedy zobaczysz ikonkę w tray-u." Then wait for confirmation and re-run `aw-check.sh`.
+
+Do not proceed to Step 2 until `aw-check.sh` returns `OK`.
 
 ### 1c. `NOT_INSTALLED`
 
