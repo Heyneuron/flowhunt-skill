@@ -1,6 +1,29 @@
 # Audit output schema
 
-The exact structure of `~/.flowhunt/audits/YYYY-MM-DD.md`. Follow this precisely. It is read both by the user and by the agent on future audits (for comparison + progress tracking).
+The exact structure of the audit output. Follow this precisely. It is read both by the user and by the agent on future audits (for comparison + progress tracking).
+
+## Folder layout (changed 2026-04-15)
+
+Each audit run writes to a per-date folder, not a single file:
+
+```
+~/.flowhunt/audits/
+  2026-04-15/
+    audit.md                      # the human-readable report (schema below)
+    raw/
+      activitywatch.json          # top-100 AFK-filtered AW query output
+      gmail.json                  # pruned Gmail search response
+      calendar.json               # Calendar events list
+      slack.json                  # Slack data if collected
+      tasks.json                  # Live tracker output (Linear, Notion, ...)
+      tasks.md                    # Copy of ~/.flowhunt/tasks.md if user is in manual mode
+      user-proposed.md            # Raw user answers to "what would YOU automate?"
+      intake.json                 # What the user answered during setup
+```
+
+**Always dump raw.** The audit.md is the narrative; `raw/` is the source of truth. Future re-analysis (same user with a different angle, or a different agent loading the same folder) depends on raw being there.
+
+## audit.md structure
 
 ## Full template
 
@@ -12,6 +35,7 @@ data_sources:
   activitywatch: ok
   gmail: ok | unconnected | error:<msg>
   calendar: ok | unconnected | error:<msg>
+  tasks: ok:<tracker> | manual | unconnected | skipped
   slack: ok | unconnected | error:<msg>
   imessage: ok | unconnected | skipped
   whatsapp: ok | unconnected | skipped
@@ -60,6 +84,23 @@ language: pl | en | ...
 - <thing 2>
 - ...
 
+## User-proposed automations
+
+<Populated in Step 6 of audit.md — after asking the user "what would YOU automate?".
+Verbatim or lightly-edited user answers, each followed by your short suggestion for
+how it could be built. If the user did not propose anything, write one line:
+"(nic nie zgłoszono w tej sesji)".>
+
+### <user's idea #1 as they phrased it>
+
+- **What:** <their phrasing>
+- **How (agent's suggestion):** <one-sentence stack / approach>
+- **Estimated saved:** <their estimate or "user didn't say">
+
+### <user's idea #2>
+
+...
+
 ## Data sources used this run
 
 | Source | Status | Volume |
@@ -67,6 +108,7 @@ language: pl | en | ...
 | ActivityWatch | ok | <X days, Y top entries> |
 | Gmail | ok/unconnected | <N messages scanned> |
 | Google Calendar | ok/unconnected | <N events scanned> |
+| Task tracker | ok:<name> / manual / unconnected | <N tasks, N completed, N recurring> |
 | Slack | ok/unconnected | <N channels, N messages> |
 | iMessage | skipped | - |
 | WhatsApp | skipped | - |

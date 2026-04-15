@@ -9,11 +9,23 @@ You receive data about:
 - Detailed app usage with window titles (e.g. "Brave - Gmail Inbox (15min)", "Slack - #sales channel (8min)", "Excel - Q2 Report.xlsx (25min)")
 - Email activity from the last 30 days: sender, subject, snippet (first ~200 chars of body), and for the top patterns possibly full bodies
 - Calendar events: title, duration, attendee count, recurring flag, and descriptions where available
+- **Task tracker data**: open tasks, completed-in-last-30-days tasks, recurring tasks, full descriptions for the top patterns. From Linear / Notion / Jira / ClickUp / Asana / Todoist / Trello via MCP, OR from `~/.flowhunt/tasks.md` if the user is in manual mode and pasted their list during setup.
 - Slack activity: channel names, the user's own message content (not just counts — actual text), timestamps
 - Optionally: iMessage / WhatsApp / Telegram / Discord messages (the user's own outbound content, same reasoning as Slack)
 - Any user-written notes about things they suspect should be automated
 
 **You have content, not just counts.** Use it. "User sends 14 emails per week" is useless. "User sends 14 emails per week replying to pricing questions with a near-identical opening paragraph" is the beginning of an automation recommendation. Read the message text; infer the repeated structure; name it concretely.
+
+**Priority ordering of inputs (highest first):**
+
+1. **User-proposed automations** — things the user personally flags during Step 6 of `audit.md` ("what would YOU automate?"). These are the single most valuable signal because the user knows their own work better than any telemetry.
+2. **Task tracker / `~/.flowhunt/tasks.md`** — tasks the user tracks are explicit "things I want to do" signals. Recurring tasks especially = textbook automation candidates.
+3. **Email content** — repeated outbound patterns (the same kind of reply to the same kind of inbound) are the second richest signal.
+4. **Calendar recurring events** — weekly meetings with the same 3 recurring topics in the description are pure automation gold.
+5. **Slack / messaging content** — same logic as email, lower volume usually.
+6. **ActivityWatch telemetry** — background context, useful for calibrating "how long does this actually take" but not for identifying WHAT to automate (titles are too noisy alone).
+
+Never let an ActivityWatch pattern dominate a recommendation when the user already told you (directly or via tracker) that something else is the pain point.
 
 Your job — produce a report with these sections:
 
@@ -59,4 +71,4 @@ Two sentences maximum. What is the #1 thing to automate first and why.
 
 ## Output format
 
-Write the report as markdown to `~/.flowhunt/audits/YYYY-MM-DD.md` using the exact structure in `../reference/audit-output-schema.md`. After writing the file, print the top 3 recommendations inline in the chat so the user can scan them without opening the file.
+Write the report as markdown to `~/.flowhunt/audits/YYYY-MM-DD/audit.md` using the exact structure in `../reference/audit-output-schema.md`. **Also dump every raw collection bundle under `~/.flowhunt/audits/YYYY-MM-DD/raw/` so the audit can be re-analyzed later without re-fetching.** After writing the file, print the top 3 recommendations inline in the chat so the user can scan them without opening the file. Then in `audit.md` Step 6, ask the user "what would YOU automate?" and append their answers as the `## User-proposed automations` section.

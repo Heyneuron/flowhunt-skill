@@ -19,7 +19,7 @@ Action: read `setup.md` in this directory and follow its procedure end-to-end. I
 
 Trigger phrases: "flowhunt audit", "run audit", "audit my workflow", "what should I automate", "analyze my work patterns", "check flowhunt", any request to produce or refresh the audit report.
 
-Action: read `audit.md` in this directory and follow its procedure end-to-end. It collects 30 days of data, applies `prompts/audit-system-prompt.md`, and writes `~/.flowhunt/audits/YYYY-MM-DD.md`.
+Action: read `audit.md` in this directory and follow its procedure end-to-end. It collects 30 days of data, dumps raw data to `~/.flowhunt/audits/YYYY-MM-DD/raw/`, applies `prompts/audit-system-prompt.md`, writes `~/.flowhunt/audits/YYYY-MM-DD/audit.md`, and then asks the user "what would YOU automate?" appending their answers as a final `## User-proposed automations` section.
 
 ## Before you start either mode
 

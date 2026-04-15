@@ -77,7 +77,28 @@ Record `calendar`. If `email = gmail` and user hesitates, default `calendar = go
 
 Record `slack`.
 
-**Q4 — optional messaging (one compact question):**
+**Q4 — task tracker (this one is as important as email):**
+> Gdzie trzymasz swoje zadania / TODO / backlog? Audit potrzebuje tego żeby wiedzieć co TY uważasz za ważne, a nie tylko co widać z ActivityWatch.
+> - Linear
+> - Notion (databases z taskami)
+> - Jira / Confluence
+> - ClickUp
+> - Asana
+> - Todoist
+> - Trello
+> - Żadne z powyższych (używam notatek / kartki / kalendarza / głowy) — wtedy cię poproszę o ręczne wklejenie
+> - Pomiń
+
+Record `task_tracker = linear | notion | jira | clickup | asana | todoist | trello | manual | skip`. See `connectors/task-trackers.md` for the per-agent wiring flow at install time (happens later in Step 6).
+
+If the user picks `manual`, immediately ask:
+> "Wklej tutaj listę zadań które teraz próbujesz pchać (z notatnika, maila, luźna lista, cokolwiek). Format dowolny — ja sobie poradzę."
+
+Take whatever they paste and write it verbatim to `~/.flowhunt/tasks.md` via `cat > ~/.flowhunt/tasks.md` (or the Write tool if the user pasted multiline). This file is re-read by every audit. The user can also edit it directly any time.
+
+If the user picks `skip`, don't ask anything else.
+
+**Q5 — optional messaging (one compact question):**
 > Coś jeszcze z komunikacji? (opcjonalne, większość skipuje)
 > - iMessage (macOS) / WhatsApp / Telegram / Discord / Pomiń wszystko
 
@@ -92,15 +113,16 @@ Ok, plan na ten setup:
   [1] ActivityWatch - zainstaluje + wtyczka do przegladarki
   [2] Gmail - przez konektor twojego agenta
   [3] Google Calendar - jak wyżej
-  [4] Slack - przez konektor albo OSS stealth mode
-  [5] iMessage / WhatsApp / ... - pominę
+  [4] Linear - natywny konektor Claude Code
+  [5] Slack - przez konektor albo OSS stealth mode
+  [6] iMessage / WhatsApp / ... - pominę
 
 Wystartuję instalacje ActivityWatch, potem przeprowadzę cię przez każdy
 konektor. Jeśli coś nie zadziała w mojej piaskownicy, poproszę cię o 
 odklepanie ręcznie. Jedziemy?
 ```
 
-Wait for confirmation. Then proceed to Step 2.
+Adjust the list based on actual intake answers (replace `[4] Linear` with whichever tracker the user chose, omit lines for skipped connectors). Wait for confirmation. Then proceed to Step 2.
 
 ---
 
@@ -266,6 +288,17 @@ Branch on `calendar`:
 
 ---
 
+## Step 4.5 — Task tracker (branches on intake)
+
+Branch on `task_tracker` from Step 1b. Read `connectors/task-trackers.md` for the per-agent wiring details and the exact verification call for each tracker.
+
+- `linear` / `notion` / `jira` / `asana` — for `claude-code`, first inspect your available tool list for `mcp__claude_ai_Linear__*` / `mcp__claude_ai_Notion__*` / `mcp__claude_ai_Atlassian__*` / `mcp__claude_ai_Asana__*` — if present, the user already connected, skip install and verify with a list-projects call. If not present, direct the user to `https://claude.ai/settings/connectors` and walk them through. For `codex`, direct to `https://chatgpt.com/apps`. For `gemini`, run the `gemini mcp add` one-liner from `connectors/task-trackers.md`. For `opencode`, show the MCP block to paste into `opencode.json`.
+- `clickup` / `todoist` / `trello` — no native connector exists for most agents. Use the community MCP server referenced in `connectors/task-trackers.md`, install via the per-agent MCP config flow. Verify by a list-tasks call.
+- `manual` — the user already pasted their tasks in Step 1b and you wrote them to `~/.flowhunt/tasks.md`. Nothing to wire. Just confirm: "OK, zadania w ~/.flowhunt/tasks.md — audit przeczyta ten plik automatycznie. Możesz go edytować ręcznie kiedy chcesz."
+- `skip` — skip silently. Audit will run without task-priority signal.
+
+After each connector, **verify** with a real tool call (list projects, list tasks, get workspace). If verification fails, debug with the user before moving on.
+
 ## Step 5 — Slack (branches on intake)
 
 If `slack = yes`, read `connectors/slack.md` and branch on agent:
@@ -299,6 +332,7 @@ Setup gotowy:
   ActivityWatch .................... [OK / OK + browser]
   Gmail ............................ [OK / skipped — reason]
   Google Calendar .................. [OK / skipped — reason]
+  Task tracker (Linear/...) ........ [OK / manual — ~/.flowhunt/tasks.md / skipped]
   Slack ............................ [OK / skipped — reason]
   iMessage / WhatsApp / ... ........ [OK / skipped — reason]
 
@@ -308,6 +342,8 @@ powiedz "flowhunt audit".
 
 Jeśli coś zmieniło się w twoim stacku, odpal "flowhunt setup" jeszcze
 raz — setup jest idempotentny, nie zepsuje istniejącej konfiguracji.
+Jeśli używasz ~/.flowhunt/tasks.md (tryb manual), możesz go edytować
+kiedy chcesz — audit przy następnym uruchomieniu przeczyta świeżą wersję.
 ```
 
 Do NOT run the audit immediately unless the user explicitly asks.

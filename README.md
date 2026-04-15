@@ -37,23 +37,39 @@ agent: (pulls 30 days of data, applies the FlowHunt audit prompt,
 | ActivityWatch (window titles, app usage) | core | direct HTTP to `localhost:5600` — zero MCP needed |
 | Gmail | primary | native connector per agent (Anthropic / ChatGPT / Google OAuth) or IMAP + App Password fallback |
 | Google Calendar | primary | same |
+| Task tracker (Linear / Notion / Jira / ClickUp / Asana / Todoist / Trello) | primary | native connector per agent, community MCP, or manual paste to `~/.flowhunt/tasks.md` |
 | Slack | primary | native connector or OSS `korotovsky/slack-mcp-server` |
 | iMessage (macOS) | optional | OSS `tink1005/imessage-mcp` |
 | WhatsApp | advanced | OSS `lharries/whatsapp-mcp` (ban-risk disclaimer) |
 
-Everything either ships from a big vendor (Anthropic / OpenAI / Google / Meta) or is open source with a stable protocol underneath. No dependency on SaaS startups that may disappear.
+Everything either ships from a big vendor (Anthropic / OpenAI / Google / Meta / Atlassian) or is open source with a stable protocol underneath. No dependency on SaaS startups that may disappear.
 
 ## What it outputs
 
-A markdown file at `~/.flowhunt/audits/YYYY-MM-DD.md` with five sections:
+A dated folder at `~/.flowhunt/audits/YYYY-MM-DD/` containing:
+
+```
+audit.md                 # the human-readable report
+raw/
+  activitywatch.json     # top-100 AFK-filtered AW query
+  gmail.json             # raw Gmail search response
+  calendar.json          # raw Calendar events
+  tasks.json | tasks.md  # task tracker output or manual paste
+  slack.json             # if Slack was connected
+  user-proposed.md       # user's own automation ideas, recorded verbatim
+  intake.json            # what the user answered during setup
+```
+
+The `audit.md` has six sections:
 
 1. **Patterns** — specific repetitive work observed
 2. **Automation recommendations** — what + how + estimated time saved
 3. **Not worth automating** — things that need a human
-4. **Estimated time saved** — single short number
-5. **Summary** — two sentences, the #1 thing to automate first
+4. **User-proposed automations** — the user's own pain points (asked at end of audit, highest priority)
+5. **Estimated time saved** — single short number
+6. **Summary** — two sentences, the #1 thing to automate first
 
-Read by you, re-read by the agent on future audits for progress tracking.
+Raw data is always persisted so you can re-analyze the same collection later with a different angle or a different agent — no need to re-fetch.
 
 ## Why a skill instead of a web app
 
