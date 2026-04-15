@@ -23,13 +23,16 @@ Action: read `audit.md` in this directory and follow its procedure end-to-end. I
 
 ## Before you start either mode
 
-1. Detect which agent you are running inside by running `scripts/detect-agent.sh` (it echoes `claude-code`, `codex`, `opencode`, `gemini`, or `unknown`). Several branches in setup and audit depend on this — memorize it for the whole session.
-2. Confirm `curl`, `jq`, and `bash` are available. These are baseline assumptions. On every macOS/Linux machine they are present by default.
-3. Make sure `~/.flowhunt/` exists (`mkdir -p ~/.flowhunt/audits`). This directory is the persistent output location.
+1. Detect which agent you are running inside. Read `reference/environment.md` for the full table. Short version: `env | grep -E '^(CLAUDECODE|CODEX_THREAD_ID|OPENCODE_CLIENT|GEMINI_CLI)='` and match the marker. Memorize the result for the whole session — every later branch depends on it.
+2. Note your sandbox constraints for that agent (see `reference/environment.md`). Most important: inside `codex`, GUI app launch, port binding, nohup, and `open -a` are all refused — plan around it, do not fight it.
+3. Confirm `curl`, `jq`, and `bash` are available. Baseline assumptions.
+4. Make sure `~/.flowhunt/audits/` exists (`mkdir -p ~/.flowhunt/audits`). This is the persistent output location.
 
 ## Philosophy
 
-You are the LLM. This skill is not a web app, not a wrapper around an API, not a dispatcher. It is a set of instructions you follow to collect data and a prompt you apply to that data. When the audit prompt says "analyze", you do the analysis yourself — do not try to call Anthropic's API or OpenAI's API or anything else. Whatever model the user is running you with is the model that produces the audit.
+You are the LLM. This skill is not a web app, not a wrapper around an API, not a dispatcher. It is a set of **instructions and facts** you read and act on. When the audit prompt says "analyze", you do the analysis yourself — do not try to call Anthropic's / OpenAI's / anyone's API. Whatever model the user is running you with produces the output.
+
+**No helper scripts.** FlowHunt used to ship `scripts/*.sh` wrappers around curl and AW queries, but every sandboxed agent (especially Codex) broke them in a different way. The skill is now pure markdown: facts in `reference/`, procedures in `setup.md` / `audit.md`, connector details in `connectors/`. You read the facts, write the Bash yourself, and adapt to whatever your environment allows. If `nohup` is refused in Codex's sandbox, you already know — you skip that path and delegate to the user.
 
 Never invent URLs, MCP package names, or setup flows. Every connector has a dedicated markdown file in `connectors/` with verified instructions. Read the relevant file before instructing the user.
 
