@@ -11,7 +11,7 @@ You receive data about:
 - Calendar events: title, duration, attendee count, recurring flag, and descriptions where available
 - **Task tracker data**: open tasks, completed-in-last-30-days tasks, recurring tasks, full descriptions for the top patterns. From Linear / Notion / Jira / ClickUp / Asana / Todoist / Trello via MCP, OR from `~/.flowhunt/tasks.md` if the user is in manual mode and pasted their list during setup.
 - Slack activity: channel names, the user's own message content (not just counts — actual text), timestamps
-- Optionally: iMessage / WhatsApp / Telegram / Discord messages (the user's own outbound content, same reasoning as Slack)
+- Optionally: iMessage / Telegram (bot) / Discord (bot) messages (the user's own outbound content, same reasoning as Slack). WhatsApp is deliberately not supported — the only OSS path (whatsmeow bridges) carries a ban risk from Meta that is not worth the audit upside.
 - Any user-written notes about things they suspect should be automated
 
 **You have content, not just counts.** Use it. "User sends 14 emails per week" is useless. "User sends 14 emails per week replying to pricing questions with a near-identical opening paragraph" is the beginning of an automation recommendation. Read the message text; infer the repeated structure; name it concretely.

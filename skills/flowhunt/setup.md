@@ -100,9 +100,11 @@ If the user picks `skip`, don't ask anything else.
 
 **Q5 — optional messaging (one compact question):**
 > Coś jeszcze z komunikacji? (opcjonalne, większość skipuje)
-> - iMessage (macOS) / WhatsApp / Telegram / Discord / Pomiń wszystko
+> - iMessage (macOS) / Telegram (bot) / Discord (bot) / Pomiń wszystko
 
 Record `optional_messaging` as a list (possibly empty).
+
+**Note — WhatsApp is intentionally not on this list.** The only OSS path for personal WhatsApp accounts (whatsmeow-based bridges like `lharries/whatsapp-mcp`) carries a non-zero ban risk from Meta. Losing access to a personal WhatsApp account costs more than any audit saves. If the user asks "but what about WhatsApp?", explain the risk briefly and tell them we deliberately don't support it — they can still read `https://github.com/lharries/whatsapp-mcp` themselves if they want to experiment outside FlowHunt.
 
 ### 1c. Confirm the plan
 
@@ -115,7 +117,7 @@ Ok, plan na ten setup:
   [3] Google Calendar - jak wyżej
   [4] Linear - natywny konektor Claude Code
   [5] Slack - przez konektor albo OSS stealth mode
-  [6] iMessage / WhatsApp / ... - pominę
+  [6] iMessage / Telegram / ... - pominę
 
 Wystartuję instalacje ActivityWatch, potem przeprowadzę cię przez każdy
 konektor. Jeśli coś nie zadziała w mojej piaskownicy, poproszę cię o 
@@ -317,7 +319,7 @@ If `slack = no` or `skip`, skip silently.
 
 ## Step 6 — Optional messaging (branches on intake)
 
-For each item in `optional_messaging`, read the relevant section of `connectors/messaging.md` or `connectors/whatsapp.md` and follow it. Remember: inside `codex` sandbox, anything involving `open`, port binding, or GUI launch is refused — delegate those steps to the user with clear instructions.
+For each item in `optional_messaging`, read the relevant section of `connectors/messaging.md` and follow it. Remember: inside `codex` sandbox, anything involving `open`, port binding, or GUI launch is refused — delegate those steps to the user with clear instructions.
 
 If `optional_messaging` is empty, skip silently.
 
@@ -334,7 +336,7 @@ Setup gotowy:
   Google Calendar .................. [OK / skipped — reason]
   Task tracker (Linear/...) ........ [OK / manual — ~/.flowhunt/tasks.md / skipped]
   Slack ............................ [OK / skipped — reason]
-  iMessage / WhatsApp / ... ........ [OK / skipped — reason]
+  iMessage / Telegram / ... ........ [OK / skipped — reason]
 
 Żeby dostać pierwszy audit użyteczny, poczekaj minimum 7 dni
 (najlepiej 14-30 dni) żeby ActivityWatch nazbierał dane. Potem

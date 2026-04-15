@@ -126,11 +126,13 @@ Do not do metadata-only. Slack audits are only valuable when you can see what th
 
 Privacy note to communicate if user seems concerned: all data stays local, the agent reading it is the same agent they opened FlowHunt from, no FlowHunt cloud, no third-party telemetry. Users who opt out of content ingestion answer `no` to Slack in intake.
 
-### Optional: iMessage / WhatsApp / Telegram / Discord
+### Optional: iMessage / Telegram (bot) / Discord (bot)
 
 Only if the user connected them during setup. Pull message counts per contact/group plus **content** for the top ~50 recent user-sent messages per channel. Do NOT ingest messages from other people in DMs without explicit permission — the user's own outbound messages are the main signal anyway.
 
-**Dump to `raw/imessage.json` / `raw/whatsapp.json` / etc.**
+**Dump to `raw/imessage.json` / `raw/telegram.json` / `raw/discord.json`.**
+
+**WhatsApp is intentionally not supported.** If the user asks "can you also read WhatsApp?", explain that the only OSS path for personal accounts is `lharries/whatsapp-mcp` (whatsmeow-based), which carries a non-zero ban risk from Meta. We deliberately removed it from FlowHunt because losing a personal WhatsApp account costs more than an audit saves. They can experiment with it outside the skill if they want.
 
 ### Intake answers
 

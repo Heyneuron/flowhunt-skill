@@ -38,7 +38,8 @@ data_sources:
   tasks: ok:<tracker> | manual | unconnected | skipped
   slack: ok | unconnected | error:<msg>
   imessage: ok | unconnected | skipped
-  whatsapp: ok | unconnected | skipped
+  telegram: ok | unconnected | skipped
+  discord: ok | unconnected | skipped
 agent: claude-code | codex | opencode | gemini | unknown
 language: pl | en | ...
 ---
@@ -111,7 +112,7 @@ how it could be built. If the user did not propose anything, write one line:
 | Task tracker | ok:<name> / manual / unconnected | <N tasks, N completed, N recurring> |
 | Slack | ok/unconnected | <N channels, N messages> |
 | iMessage | skipped | - |
-| WhatsApp | skipped | - |
+| Telegram | skipped | - |
 
 ## Change since last audit
 
@@ -144,7 +145,7 @@ data_sources:
   calendar: unconnected
   slack: unconnected
   imessage: skipped
-  whatsapp: skipped
+  telegram: skipped
 agent: claude-code
 language: pl
 ---
@@ -188,5 +189,5 @@ Najpilniejsze: uruchom audit ponownie za 10 dni, a tymczasem podłącz Gmail
 | Google Calendar | unconnected | - |
 | Slack | unconnected | - |
 | iMessage | skipped | - |
-| WhatsApp | skipped | - |
+| Telegram | skipped | - |
 ```

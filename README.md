@@ -40,9 +40,10 @@ agent: (pulls 30 days of data, applies the FlowHunt audit prompt,
 | Task tracker (Linear / Notion / Jira / ClickUp / Asana / Todoist / Trello) | primary | native connector per agent, community MCP, or manual paste to `~/.flowhunt/tasks.md` |
 | Slack | primary | native connector or OSS `korotovsky/slack-mcp-server` |
 | iMessage (macOS) | optional | OSS `tink1005/imessage-mcp` |
-| WhatsApp | advanced | OSS `lharries/whatsapp-mcp` (ban-risk disclaimer) |
+| Telegram (bot) | optional | bot token via BotFather |
+| Discord (bot) | optional | bot token via Discord Developer Portal |
 
-Everything either ships from a big vendor (Anthropic / OpenAI / Google / Meta / Atlassian) or is open source with a stable protocol underneath. No dependency on SaaS startups that may disappear.
+Everything either ships from a big vendor (Anthropic / OpenAI / Google / Atlassian) or is open source with a first-party protocol underneath. No dependency on SaaS startups that may disappear, and no unofficial bridges that risk platform bans — WhatsApp is deliberately out because the only path for personal accounts (whatsmeow-based bridges) carries a non-zero ban risk from Meta, and losing your WhatsApp account is not worth saving a couple of hours in an audit.
 
 ## What it outputs
 
