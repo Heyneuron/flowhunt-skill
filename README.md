@@ -2,7 +2,9 @@
 
 > Agent-native automation discovery. Plug it into Claude Code, Codex CLI, OpenCode, or Gemini CLI and get a no-bullshit audit of what you should automate first.
 
-FlowHunt watches how you actually work — window titles from ActivityWatch, email volume and content, calendar meetings, Slack messages, task-tracker backlog — then your agent reads the data, applies a focused analysis prompt, and writes a markdown report telling you exactly what to automate and what to leave alone. All local. The agent you already have is the brain.
+FlowHunt analyzes how you actually work — email content and volume, calendar meetings, Slack messages, task-tracker backlog, and optionally window titles from ActivityWatch — then your agent reads the data, applies a focused analysis prompt, and writes a markdown report telling you exactly what to automate and what to leave alone. All local. The agent you already have is the brain.
+
+**Works immediately after setup** — no waiting period. ActivityWatch is optional but recommended: it adds time-per-app data that makes the second audit (after 14-30 days) significantly richer.
 
 ## Install
 
@@ -18,24 +20,25 @@ Two commands, both conversational. You talk to your agent like you always do.
 
 ```
 you:   flowhunt setup
-agent: (walks you through ActivityWatch install, a 4-question intake,
-        and connector wiring for Gmail / Calendar / task tracker /
-        Slack / optional messaging. Zero decisions unless you want
-        to skip something.)
+agent: (walks you through a 5-question intake, connector wiring for
+        Gmail / Calendar / task tracker / Slack / optional messaging,
+        and optionally installs ActivityWatch. Zero decisions unless
+        you want to skip something.)
 
 you:   flowhunt audit
-agent: (pulls 30 days of data from every connected source, applies
-        the FlowHunt audit prompt, dumps raw data to
-        ~/.flowhunt/audits/YYYY-MM-DD/raw/, writes a markdown report
-        to audit.md, shows you the top findings inline, and asks
-        what YOU would automate.)
+agent: (pulls data from every connected source — and ActivityWatch
+        if running — applies the FlowHunt audit prompt, dumps raw
+        data to ~/.flowhunt/audits/YYYY-MM-DD/raw/, writes a markdown
+        report to audit.md, shows you the top findings inline, asks
+        what YOU would automate, and gives you a feedback link with
+        a free automation playbook reward.)
 ```
 
 ## What it reads
 
 | Source | Status | How |
 |---|---|---|
-| ActivityWatch (window titles, app usage) | core | direct HTTP to `localhost:5600` — zero MCP needed |
+| ActivityWatch (window titles, app usage) | optional | direct HTTP to `localhost:5600` — zero MCP needed. Enriches audit with time-per-app data |
 | Gmail | primary | native connector per agent (Anthropic / ChatGPT / Google OAuth) or IMAP + App Password fallback |
 | Google Calendar | primary | same |
 | Task tracker (Linear / Notion / Jira / ClickUp / Asana / Todoist / Trello) | primary | native connector per agent, community MCP, or manual paste to `~/.flowhunt/tasks.md` |
@@ -87,7 +90,7 @@ skills/flowhunt/
     environment.md                  # per-agent env detection + sandbox constraints
     audit-output-schema.md          # exact format for audit.md + raw/
   connectors/
-    activitywatch.md                # install per OS + browser extension (mandatory)
+    activitywatch.md                # install per OS + browser extension (optional but recommended)
     google-workspace.md             # Gmail + Calendar per agent
     task-trackers.md                # Linear / Notion / Jira / ... per agent
     slack.md                        # native connector + OSS fallback

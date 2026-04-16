@@ -1,6 +1,6 @@
 # ActivityWatch connector
 
-ActivityWatch is the foundation of FlowHunt. Everything else is optional — this is not. It runs 100% locally, no cloud, no telemetry, open source. Data lives in `~/.local/share/activitywatch/` (Linux) / `~/Library/Application Support/activitywatch/` (macOS) / `%LOCALAPPDATA%\activitywatch\` (Windows).
+ActivityWatch is optional but strongly recommended. FlowHunt audit works without it (using Gmail, Calendar, Slack, and task data), but AW adds a unique signal: how much time you actually spend in each app and browser tab. Without AW, the audit relies on content patterns from your connected sources. With AW, it also knows your time distribution. It runs 100% locally, no cloud, no telemetry, open source. Data lives in `~/.local/share/activitywatch/` (Linux) / `~/Library/Application Support/activitywatch/` (macOS) / `%LOCALAPPDATA%\activitywatch\` (Windows).
 
 ## CRITICAL: the browser extension is not optional
 
@@ -62,7 +62,7 @@ No prebuilt extension is distributed. Building it from source requires Xcode, Ap
 
 ## Verifying the extension is working
 
-After the user installs the extension, re-run `scripts/aw-check.sh`. It confirms the window watcher bucket exists. For a stricter check (extension specifically present), query buckets directly:
+After the user installs the extension, verify the web bucket exists:
 
 ```bash
 curl -fsS http://localhost:5600/api/0/buckets/ | jq 'keys[] | select(test("aw-watcher-web"))'
@@ -92,9 +92,6 @@ curl -fsS http://localhost:5600/api/0/info | jq -r '.hostname, .version'
 
 # Buckets present (expect at least window + afk + web)
 curl -fsS http://localhost:5600/api/0/buckets/ | jq 'keys'
-
-# Last 5 minutes of events (should return non-empty)
-./scripts/aw-query.sh 1 | jq '.[0:3]'
 ```
 
 If all three return sensible data, ActivityWatch setup is complete.

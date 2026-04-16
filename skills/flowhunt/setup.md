@@ -35,13 +35,15 @@ Cześć! Jestem FlowHunt. Zaraz obgadam z tobą twój codzienny workflow i podpo
 co warto zautomatyzować w pierwszej kolejności.
 
 Jak to działa:
-  1. Zainstaluję lokalnie ActivityWatch - widzi tytuły twoich okien i stron
-     (wszystko zostaje na twoim kompie, zero chmury)
-  2. Podepnę twojego maila, kalendarz i slacka (jeśli używasz) przez
+  1. Podepnę twojego maila, kalendarz i slacka (jeśli używasz) przez
      oficjalne konektory twojego agenta - żadnych API keys, żadnego
      Google Cloud projektu
-  3. Za ~7 dni kiedy ActivityWatch nazbiera dane, odpalisz "flowhunt audit"
-     i dostaniesz raport z konkretnymi rekomendacjami automatyzacji
+  2. Opcjonalnie zainstaluję ActivityWatch - widzi tytuły twoich okien
+     i stron (wszystko lokalnie, zero chmury). Nie jest wymagany, ale
+     daje lepszy obraz na co poświęcasz czas
+  3. Od razu po setup możesz odpalić "flowhunt audit" i dostaniesz
+     raport z rekomendacjami. Drugi audit po 30 dniach z ActivityWatch
+     będzie jeszcze dokładniejszy
 
 Setup zajmie ~5 minut. Idziemy?
 ```
@@ -338,9 +340,10 @@ Setup gotowy:
   Slack ............................ [OK / skipped — reason]
   iMessage / Telegram / ... ........ [OK / skipped — reason]
 
-Żeby dostać pierwszy audit użyteczny, poczekaj minimum 7 dni
-(najlepiej 14-30 dni) żeby ActivityWatch nazbierał dane. Potem
-powiedz "flowhunt audit".
+Możesz od razu odpalić "flowhunt audit" — audit działa z tym co masz
+podpięte (mail, kalendarz, taski, Slack). Jeśli zainstalowałeś
+ActivityWatch, drugi audit za 14-30 dni będzie znacznie bogatszy
+o dane o tym ile czasu na co poświęcasz.
 
 Jeśli coś zmieniło się w twoim stacku, odpal "flowhunt setup" jeszcze
 raz — setup jest idempotentny, nie zepsuje istniejącej konfiguracji.

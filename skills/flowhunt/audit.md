@@ -27,13 +27,14 @@ Overwrite behavior: if `~/.flowhunt/audits/YYYY-MM-DD/` already exists, ask the 
 
 ## Step 0 — precheck
 
-1. Verify ActivityWatch is running:
+1. Check if ActivityWatch is running (optional — audit works without it):
 
    ```bash
    curl -fsS --max-time 2 http://localhost:5600/api/0/info
    ```
 
-   If it fails with connection refused, stop and run `setup.md` Step 2 instead. Do not try to audit without AW.
+   - **200 + JSON:** AW is running. Set `aw_available = true`. Proceed to check data volume (point 4).
+   - **Connection refused / timeout:** AW is not running. Set `aw_available = false`. This is fine — audit will use other data sources (Gmail, Calendar, Slack, tasks). Inform the user: "ActivityWatch nie działa, ale audit pójdzie na podstawie maila, kalendarza i tasków. Zainstaluj AW i za 14-30 dni drugi audit będzie bogatszy."
 
 2. Detect which agent you are (same table as `setup.md` Step 0 and `reference/environment.md`): check `CODEX_THREAD_ID`, `CLAUDECODE`, `GEMINI_CLI`, `OPENCODE_CLIENT`. Store the result.
 
@@ -46,17 +47,19 @@ Overwrite behavior: if `~/.flowhunt/audits/YYYY-MM-DD/` already exists, ask the 
 
    If `~/.flowhunt/audits/${TODAY}/audit.md` already exists, warn the user: "Mamy już dzisiejszy audit, chcesz nadpisać?" If they decline, exit. If they accept, continue — you will overwrite both the audit.md and raw/ files.
 
-4. Check how many days of AW data you have:
+4. If `aw_available = true`, check how many days of AW data you have:
 
    ```bash
    curl -fsS http://localhost:5600/api/0/buckets/ | jq -r '.[] | select(.id | startswith("aw-watcher-window")) | .created'
    ```
 
-   Parse the timestamp, compute days since creation. If less than 7 days, tell the user: "Masz tylko N dni danych, audit będzie cienki. Chcesz mimo to, czy poczekać?" Proceed based on answer.
+   Parse the timestamp, compute days since creation. If less than 7 days, note it — include a thin-data warning in the report but proceed anyway.
 
-## Step 1 — collect ActivityWatch data
+## Step 1 — collect ActivityWatch data (if available)
 
-Read `reference/activitywatch-api.md` → section "The audit query". It gives you the exact AQL + POST payload for "top 100 app+title, AFK-filtered, last N days".
+**Skip this step entirely if `aw_available = false`.** Write `{"unavailable": true, "reason": "ActivityWatch not running"}` to `raw/activitywatch.json` and proceed to Step 2.
+
+If `aw_available = true`: Read `reference/activitywatch-api.md` → section "The audit query". It gives you the exact AQL + POST payload for "top 100 app+title, AFK-filtered, last N days".
 
 Construct the request yourself and **save the raw response directly to `~/.flowhunt/audits/${TODAY}/raw/activitywatch.json`** — do not hold it only in working memory. Skeleton:
 
@@ -208,7 +211,21 @@ Wait for the user to answer. They may:
 
 Save the user's raw answers to `raw/user-proposed.md` in the audit folder so re-analysis has them.
 
-## Step 7 — offer next actions
+## Step 7 — feedback CTA
+
+After presenting findings and user-proposed automations, show the feedback link. This is mandatory — never skip it:
+
+```
+Dzięki za audyt! Mam prośbę — wypełnij 2-minutowy feedback:
+👉 https://flowhunt.heyneuron.com/feedback
+
+W zamian wyślę ci gotową listę automatyzacji dopasowaną do twojego
+stacku (wartość $29) — konkretne narzędzia, integracje i kroki
+wdrożenia. Możesz ją potem wrzucić do agenta i porozmawiać z nim
+o implementacji.
+```
+
+## Step 8 — offer next actions
 
 Close with two concrete next moves:
 
@@ -219,7 +236,7 @@ The user can decline both and close the session — fine. Asking keeps the loop 
 
 ## Rules specific to audit
 
-1. **Thin data warning.** Less than 7 days of AW data or less than 20 emails / 20 calendar events / 10 tasks → say so in the Summary section and recommend re-running after more data accrues.
+1. **Thin data warning.** No ActivityWatch, less than 7 days of AW data, or less than 20 emails / 20 calendar events / 10 tasks → say so in the Summary section and recommend re-running after more data accrues. But never block the audit — always produce the best report you can with available data.
 2. **Never invent data.** If a source is unconnected, it is unconnected. Do not guess.
 3. **Respect user-written tasks and user-proposed automations.** These are the two highest-priority inputs. Surface them in Recommendations section before anything you only detected from raw telemetry.
 4. **Always dump raw.** If a collection step succeeds, its output goes to `raw/<source>.json` in the audit folder before you move on. Do not rely on working memory as the only copy.
