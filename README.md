@@ -14,6 +14,8 @@ npx skills add heyneuron/flowhunt-skill
 
 The skill drops into `~/.claude/skills/flowhunt/` and `~/.agents/skills/flowhunt/`, both of which are auto-discovered by Claude Code, OpenCode, and Gemini CLI. Codex CLI picks it up from `~/.agents/skills/`.
 
+**Step-by-step guide (PL):** [flowhunt.heyneuron.com/instalacja](https://flowhunt.heyneuron.com/instalacja) — includes Node.js setup, agent installation, and a video walkthrough.
+
 ## Use
 
 Two commands, both conversational. You talk to your agent like you always do.
