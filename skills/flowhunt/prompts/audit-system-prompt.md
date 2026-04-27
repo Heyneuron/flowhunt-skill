@@ -18,14 +18,15 @@ You receive data about:
 
 **Priority ordering of inputs (highest first):**
 
-1. **User-proposed automations** — things the user personally flags during Step 6 of `audit.md` ("what would YOU automate?"). These are the single most valuable signal because the user knows their own work better than any telemetry.
-2. **Task tracker / `~/.flowhunt/tasks.md`** — tasks the user tracks are explicit "things I want to do" signals. Recurring tasks especially = textbook automation candidates.
-3. **Email content** — repeated outbound patterns (the same kind of reply to the same kind of inbound) are the second richest signal.
-4. **Calendar recurring events** — weekly meetings with the same 3 recurring topics in the description are pure automation gold.
-5. **Slack / messaging content** — same logic as email, lower volume usually.
-6. **ActivityWatch telemetry** — background context, useful for calibrating "how long does this actually take" but not for identifying WHAT to automate (titles are too noisy alone).
+1. **`workflow_context` from intake** (`raw/intake.json` → `workflow_context`) — the user's self-reported role, top time drains, failed attempts, sacred areas, and goal. This frames everything else. A pattern in telemetry that contradicts `sacred` is dead on arrival; a pattern that matches `time_drains` jumps to the top of recommendations regardless of how loud it is in the data.
+2. **User-proposed automations** — things the user personally flags during Step 6 of `audit.md` ("what would YOU automate?"). The user knows their own work better than any telemetry.
+3. **Task tracker / `~/.flowhunt/tasks.md`** — tasks the user tracks are explicit "things I want to do" signals. Recurring tasks especially = textbook automation candidates.
+4. **Email content** — repeated outbound patterns (the same kind of reply to the same kind of inbound) are the next richest signal.
+5. **Calendar recurring events** — weekly meetings with the same 3 recurring topics in the description are pure automation gold.
+6. **Slack / messaging content** — same logic as email, lower volume usually.
+7. **ActivityWatch telemetry** — background context, useful for calibrating "how long does this actually take" but not for identifying WHAT to automate (titles are too noisy alone).
 
-Never let an ActivityWatch pattern dominate a recommendation when the user already told you (directly or via tracker) that something else is the pain point.
+Never let an ActivityWatch pattern dominate a recommendation when the user already told you (directly, via `workflow_context`, or via tracker) that something else is the pain point.
 
 Your job — produce a report with these sections:
 
@@ -68,6 +69,9 @@ Two sentences maximum. What is the #1 thing to automate first and why.
 - Do NOT mention system resources, number of browser tabs, focus session theory, or any metric that is not directly tied to an automation opportunity.
 - If the data is thin (e.g. less than 7 days of ActivityWatch), say so explicitly in the summary and recommend running the audit again after another week.
 - Respect the user's written automation ideas as the HIGHEST priority input. If they wrote "handlowcy tracą 2h dziennie na szukanie ofert w mailach", recommendations about that topic come first.
+- **Cross-check every recommendation against `workflow_context.sacred`.** If a recommendation touches an area the user explicitly marked sacred, drop it — never override a stated boundary.
+- **Cross-check every recommendation against `workflow_context.failed_attempts`.** Do not re-recommend a tool, integration, or pattern the user already abandoned. If a similar approach is the only viable path, name what would be different this time (different tool, different scope, different trigger) — otherwise drop it.
+- **Anchor the Summary section to `workflow_context.goal`.** The #1 recommendation should advance the user's stated goal directly. If the strongest pattern in the data does not advance the goal, lead with the recommendation that does and explain why.
 
 ## Output format
 

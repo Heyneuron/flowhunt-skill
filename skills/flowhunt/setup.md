@@ -52,9 +52,54 @@ Then announce the detected agent in one sentence, e.g.: "Widzę że jesteś w Co
 
 Wait for the user's confirmation ("tak", "jedziemy", "ok") before continuing. If they say "nie", stop and thank them.
 
-### 1b. Interview — one question at a time
+### 1b. Workflow context — kim jesteś i co cię boli
 
-Ask the questions below **one at a time**. Wait for each answer before asking the next.
+Before asking about connectors, ask the user 5 short open-ended questions about their actual work. **One question at a time.** Wait for each answer. Keep your prompts terse — no preamble, no "to świetne pytanie".
+
+The point of this block is to give the audit a human-stated baseline. Pure pattern detection from telemetry produces generic recommendations ("you use Gmail a lot, automate it"). Knowing the user's role, pain points, what they already tried, what is off-limits, and their goal lets the audit prioritize correctly.
+
+**WC1 — role:**
+> Jednym zdaniem: czym się zajmujesz na co dzień? (np. "CTO startupu B2B SaaS", "freelance dev React/Solana", "sales w software house", "ops manager w e-commerce")
+
+Record `role` (free-text, one line).
+
+**WC2 — top time drains:**
+> Wymień 3 rzeczy które robisz manualnie kilka razy w tygodniu i denerwuje cię, że jeszcze nie są zautomatyzowane. Mogą być duże ("triage maila") albo małe ("kopiuję te same dane między arkuszami"). Po jednym w linijce.
+
+Record `time_drains` as a list of strings (1-3 entries, whatever the user gives).
+
+**WC3 — failed attempts:**
+> Co próbowałeś już automatyzować i nie wyszło? (Zapier się rozsypał, skrypt zardzewiał, AI agent halucynował, no-code był za sztywny). Nazwij ścieżki które mam pominąć w rekomendacjach. Jak nic — wpisz "nic".
+
+Record `failed_attempts` as a list (possibly empty / `["nic"]` if user passes).
+
+**WC4 — sacred areas:**
+> Co jest święte i nie chcesz tego automatyzować? (np. "1:1 z ludźmi nie ruszamy", "pisanie postów na LinkedIn to mój flow", "discovery calls robię sam"). Jak wszystko fair game — wpisz "nic".
+
+Record `sacred` as a list (possibly empty).
+
+**WC5 — goal:**
+> Po co ci ten audyt? Jaki konkretny efekt chcesz osiągnąć? (np. "oszczędzić 10h/tydz", "więcej deep work bez przerywników", "scale firmy bez powiększania zespołu", "ograniczyć inboxa do max 30min/dzień")
+
+Record `goal` (free-text, one line).
+
+After all five answers, summarize back to the user in 2-3 lines so they can correct anything before you proceed:
+
+```
+Okej, wstępnie mam tak:
+  rola: <role>
+  bóle: <time_drains joined by " | ">
+  święte: <sacred joined by " | ">
+  cel: <goal>
+
+Pasuje, czy coś dopisać?
+```
+
+If they correct something, update the record. Then proceed to 1c. Store all five fields in the `workflow_context` object that will be written to `~/.flowhunt/audits/YYYY-MM-DD/raw/intake.json` during the next audit (see `audit.md` Step 2).
+
+### 1c. Connector wiring — jakie masz narzędzia
+
+Now ask the technical questions about which tools you'll wire up. **One at a time**, same as 1b. Wait for each answer.
 
 **Q1 — email:**
 > Z jakiego maila korzystasz do pracy?
@@ -108,7 +153,7 @@ Record `optional_messaging` as a list (possibly empty).
 
 **Note — WhatsApp is intentionally not on this list.** The only OSS path for personal WhatsApp accounts (whatsmeow-based bridges like `lharries/whatsapp-mcp`) carries a non-zero ban risk from Meta. Losing access to a personal WhatsApp account costs more than any audit saves. If the user asks "but what about WhatsApp?", explain the risk briefly and tell them we deliberately don't support it — they can still read `https://github.com/lharries/whatsapp-mcp` themselves if they want to experiment outside FlowHunt.
 
-### 1c. Confirm the plan
+### 1d. Confirm the plan
 
 Print a plan reflecting the answers:
 
@@ -294,11 +339,11 @@ Branch on `calendar`:
 
 ## Step 4.5 — Task tracker (branches on intake)
 
-Branch on `task_tracker` from Step 1b. Read `connectors/task-trackers.md` for the per-agent wiring details and the exact verification call for each tracker.
+Branch on `task_tracker` from Step 1c. Read `connectors/task-trackers.md` for the per-agent wiring details and the exact verification call for each tracker.
 
 - `linear` / `notion` / `jira` / `asana` — for `claude-code`, first inspect your available tool list for `mcp__claude_ai_Linear__*` / `mcp__claude_ai_Notion__*` / `mcp__claude_ai_Atlassian__*` / `mcp__claude_ai_Asana__*` — if present, the user already connected, skip install and verify with a list-projects call. If not present, direct the user to `https://claude.ai/settings/connectors` and walk them through. For `codex`, direct to `https://chatgpt.com/apps`. For `gemini`, run the `gemini mcp add` one-liner from `connectors/task-trackers.md`. For `opencode`, show the MCP block to paste into `opencode.json`.
 - `clickup` / `todoist` / `trello` — no native connector exists for most agents. Use the community MCP server referenced in `connectors/task-trackers.md`, install via the per-agent MCP config flow. Verify by a list-tasks call.
-- `manual` — the user already pasted their tasks in Step 1b and you wrote them to `~/.flowhunt/tasks.md`. Nothing to wire. Just confirm: "OK, zadania w ~/.flowhunt/tasks.md — audit przeczyta ten plik automatycznie. Możesz go edytować ręcznie kiedy chcesz."
+- `manual` — the user already pasted their tasks in Step 1c and you wrote them to `~/.flowhunt/tasks.md`. Nothing to wire. Just confirm: "OK, zadania w ~/.flowhunt/tasks.md — audit przeczyta ten plik automatycznie. Możesz go edytować ręcznie kiedy chcesz."
 - `skip` — skip silently. Audit will run without task-priority signal.
 
 After each connector, **verify** with a real tool call (list projects, list tasks, get workspace). If verification fails, debug with the user before moving on.

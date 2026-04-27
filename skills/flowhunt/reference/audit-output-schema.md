@@ -42,9 +42,19 @@ data_sources:
   discord: ok | unconnected | skipped
 agent: claude-code | codex | opencode | gemini | unknown
 language: pl | en | ...
+goal_anchor: <one-line copy of workflow_context.goal — for diffing across audits>
 ---
 
 # FlowHunt audit — 2026-04-15
+
+## Kontekst
+
+> Powtarzamy żeby user widział, że audit zna jego sytuację. Cztery linijki, kopie z `intake.json` → `workflow_context`. Jak `workflow_context` brak (legacy audit), pomiń tę sekcję.
+
+- **Rola:** <workflow_context.role>
+- **Główne bóle (TY je wskazałeś):** <workflow_context.time_drains, joined>
+- **Święte / nie ruszamy:** <workflow_context.sacred, joined — albo "nic" jak puste>
+- **Cel audytu:** <workflow_context.goal>
 
 ## Summary
 

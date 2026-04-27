@@ -2,7 +2,7 @@
 
 Task trackers are the single most important signal for automation audits after ActivityWatch. Where AW shows what the user IS doing, the tracker shows what they are *trying* to do — the backlog, the priorities, the recurring items that come up week after week. A recurring task that appears in someone's ClickUp every Monday is the textbook definition of "automate me."
 
-FlowHunt supports several task trackers via MCP or native connectors. The intake question in `setup.md` Step 1b asks the user which one they use and records it. This file is the branch-per-tracker instructions.
+FlowHunt supports several task trackers via MCP or native connectors. The intake question in `setup.md` Step 1c asks the user which one they use and records it. This file is the branch-per-tracker instructions.
 
 ## Supported trackers and their paths
 

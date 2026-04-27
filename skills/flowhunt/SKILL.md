@@ -1,6 +1,6 @@
 ---
 name: flowhunt
-description: Automation discovery audit. When the user says "flowhunt setup" walk them through wiring Gmail/Calendar/Slack/optional messaging connectors and optionally installing ActivityWatch. When the user says "flowhunt audit" collect data from all connected sources (and ActivityWatch if running), apply the FlowHunt analysis prompt, and write a markdown report to ~/.flowhunt/audits/YYYY-MM-DD/audit.md. Audit works immediately after setup — ActivityWatch enriches it but is not required. Use this skill whenever the user mentions flowhunt, automation audit, productivity audit, or asks what they should automate in their workflow.
+description: Automation discovery audit. When the user says "flowhunt setup" walk them through a 5-question workflow intake (role, pain points, failed attempts, sacred areas, goal) and then wire Gmail/Calendar/Slack/task-tracker/optional messaging connectors and optionally install ActivityWatch. When the user says "flowhunt audit" collect data from all connected sources (and ActivityWatch if running), apply the FlowHunt analysis prompt with the user's stated context as the highest-priority input, and write a markdown report to ~/.flowhunt/audits/YYYY-MM-DD/audit.md. Audit works immediately after setup — ActivityWatch enriches it but is not required. Use this skill whenever the user mentions flowhunt, automation audit, productivity audit, or asks what they should automate in their workflow.
 ---
 
 # FlowHunt

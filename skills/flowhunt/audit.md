@@ -55,6 +55,31 @@ Overwrite behavior: if `~/.flowhunt/audits/YYYY-MM-DD/` already exists, ask the 
 
    Parse the timestamp, compute days since creation. If less than 7 days, note it — include a thin-data warning in the report but proceed anyway.
 
+## Step 0.5 — workflow context (mandatory)
+
+The audit needs human-stated context to prioritize correctly. Pure pattern detection from telemetry produces generic recommendations. Knowing the user's role, pain points, failed attempts, sacred areas, and goal lets the audit rank findings against what actually matters.
+
+Before collecting any data, check if you already have a `workflow_context` block (either from this session's `setup.md` interview, or from a previous `~/.flowhunt/audits/*/raw/intake.json`).
+
+```bash
+LATEST_INTAKE=$(ls -t ~/.flowhunt/audits/*/raw/intake.json 2>/dev/null | head -1)
+[ -n "$LATEST_INTAKE" ] && jq -r '.workflow_context // empty' "$LATEST_INTAKE"
+```
+
+**If `workflow_context` exists and is recent (audit from last 30 days):** show it back to the user in 3 lines and ask: *"Mam zapisany twój kontekst z poprzedniego audita: rola = X, główne bóle = Y, cel = Z. Coś się zmieniło, czy jedziemy z tym samym?"* If they say "to samo" — reuse it. If they want changes — ask which fields and update.
+
+**If `workflow_context` is missing or older than 30 days:** ask the 5 questions inline now. They are the same as `setup.md` 1b (WC1-WC5):
+
+1. **Rola:** "Jednym zdaniem: czym się zajmujesz na co dzień?"
+2. **Top time drains:** "Wymień 3 rzeczy które robisz manualnie kilka razy w tygodniu i denerwuje cię, że nie są zautomatyzowane"
+3. **Failed attempts:** "Co próbowałeś już automatyzować i nie wyszło? (Zapier, skrypty, AI agenty). Wpisz 'nic' jak nic"
+4. **Sacred:** "Co jest święte i nie chcesz tego automatyzować? Wpisz 'nic' jak wszystko fair game"
+5. **Goal:** "Po co ci ten audyt? Konkretny efekt"
+
+Ask **one at a time**, wait for each answer. After all five, summarize back ("rola: X | bóle: Y | święte: Z | cel: W — pasuje?") and let the user correct.
+
+Store the answers in working memory as `workflow_context`. They will be written to `raw/intake.json` in Step 2 and consumed by the system prompt as the highest-priority input in Step 3.
+
 ## Step 1 — collect ActivityWatch data (if available)
 
 **Skip this step entirely if `aw_available = false`.** Write `{"unavailable": true, "reason": "ActivityWatch not running"}` to `raw/activitywatch.json` and proceed to Step 2.
@@ -139,7 +164,7 @@ Only if the user connected them during setup. Pull message counts per contact/gr
 
 ### Intake answers
 
-Finally, write out what the user answered during setup (stored in your working memory during Step 1 of `setup.md`) as `raw/intake.json`:
+Finally, write out what the user answered during setup (stored in your working memory during Step 1 of `setup.md`) as `raw/intake.json`. The `workflow_context` block is the single most important input for the audit — see Step 0.5 below for what to do if it is missing.
 
 ```json
 {
@@ -149,11 +174,28 @@ Finally, write out what the user answered during setup (stored in your working m
   "slack": "yes",
   "optional_messaging": [],
   "agent": "claude-code",
-  "language": "pl"
+  "language": "pl",
+  "workflow_context": {
+    "role": "CTO startupu B2B SaaS, ~10 osób w zespole",
+    "time_drains": [
+      "triage maila po nocach",
+      "kopiowanie statusów ze Slacka do Linear co tydzień",
+      "raport sprzedażowy w piątki — 6 tabelek na ręcznie"
+    ],
+    "failed_attempts": [
+      "Zapier się rozsypał po update API HubSpota",
+      "Notion AI halucynował w meeting notes"
+    ],
+    "sacred": [
+      "1:1 z ludźmi nie ruszamy",
+      "discovery calls robię sam"
+    ],
+    "goal": "oszczędzić 8h/tydz na operacjach i przerzucić to na product"
+  }
 }
 ```
 
-This lets a future re-analysis understand the context of the data collection.
+This lets a future re-analysis understand both the technical setup AND the human context behind the data collection.
 
 ## Step 3 — apply the audit prompt
 
@@ -164,11 +206,12 @@ Load `prompts/audit-system-prompt.md`. That is your system instructions for this
 - Language match to the user
 - User's written ideas (task tracker tasks + `~/.flowhunt/tasks.md` + user-proposed automations from Step 5) = highest priority input
 
-Your analysis input is the union of:
+Your analysis input is the union of, in priority order:
 
-1. ActivityWatch top-100 records from Step 1
-2. Every messaging/workspace/task bundle you successfully collected in Step 2
-3. Any previous audit markdown in `~/.flowhunt/audits/` from the last 30 days — read the most recent one so you can note changes since the last audit (optional but high value)
+1. **`workflow_context` from Step 0.5** — the user's stated role, top time drains, failed attempts, sacred areas, and goal. This is the highest-priority signal. Every recommendation must be cross-checked against it (do not recommend a `failed_attempts` path, do not touch a `sacred` area, prioritize anything matching `time_drains`, optimize for `goal`).
+2. ActivityWatch top-100 records from Step 1
+3. Every messaging/workspace/task bundle you successfully collected in Step 2
+4. Any previous audit markdown in `~/.flowhunt/audits/` from the last 30 days — read the most recent one so you can note changes since the last audit (optional but high value)
 
 **Do the analysis yourself.** You are the LLM. Do not try to call an external API. Whatever model the user is running you with produces the output.
 
