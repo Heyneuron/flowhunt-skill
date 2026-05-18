@@ -36,6 +36,29 @@ You want to see at least one bucket name starting with `aw-watcher-window_`. If 
 
 For full health, also expect `aw-watcher-afk_<hostname>` (AFK detection, required for the audit query below) and ideally `aw-watcher-web-<browser>` (browser extension — critical for URL/page title capture; see `../connectors/activitywatch.md`).
 
+## Auto-discovery fallback (when `find_bucket` fails)
+
+If the AQL query later fails with `Bucket not found` even though the server is up, the bucket name may differ from the expected pattern (custom hostname, renamed watcher, or legacy install). Use this discovery procedure:
+
+1. **List all buckets and their last event timestamps:**
+
+```bash
+curl -fsS http://localhost:5600/api/0/buckets/ | jq -r 'to_entries[] | "\(.key)\t\(.value.metadata.client)\t\(.value.last_updated // "never")"' | sort -k3 -r
+```
+
+2. **Pick the best window bucket:** Choose the entry whose `metadata.client` contains `aw-watcher-window` and has the most recent `last_updated`. If multiple match, pick the one with the most recent `last_updated`.
+
+3. **Pick the best AFK bucket:** Same logic — `metadata.client` contains `aw-watcher-afk`, most recent `last_updated`.
+
+4. **Substitute in the AQL:** Instead of `find_bucket("aw-watcher-window_")`, use the literal bucket name in quotes, e.g.:
+
+```
+events = flood(query_bucket("aw-watcher-window_MacBook-Pro-3.local"));
+not_afk = flood(query_bucket("aw-watcher-afk_MacBook-Pro-3.local"));
+```
+
+If no window bucket exists at all, the audit cannot collect ActivityWatch data. Mark `activitywatch: no_window_bucket` and continue with the remaining sources.
+
 ## The audit query (top 100 app+title, AFK-filtered, last N days)
 
 The canonical AQL query ported from the original Next.js FlowHunt app's `activitywatch.ts`. It:
@@ -63,8 +86,8 @@ Note: `find_bucket("aw-watcher-window_")` resolves the hostname suffix automatic
 **POST request:**
 
 ```bash
-START=$(date -u -v-30d +"%Y-%m-%dT00:00:00+00:00" 2>/dev/null || date -u -d "30 days ago" +"%Y-%m-%dT00:00:00+00:00")
-END=$(date -u -v+1d +"%Y-%m-%dT00:00:00+00:00" 2>/dev/null || date -u -d "+1 day" +"%Y-%m-%dT00:00:00+00:00")
+START=$(python3 -c "import datetime; print((datetime.datetime.now(datetime.timezone.utc)-datetime.timedelta(days=30)).strftime('%Y-%m-%dT00:00:00+00:00'))")
+END=$(python3 -c "import datetime; print((datetime.datetime.now(datetime.timezone.utc)+datetime.timedelta(days=1)).strftime('%Y-%m-%dT00:00:00+00:00'))")
 
 jq -nc \
   --arg period "${START}/${END}" \
