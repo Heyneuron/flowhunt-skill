@@ -12,9 +12,9 @@ FlowHunt supports several task trackers via MCP or native connectors. The intake
 | **Notion** | native connector at `https://claude.ai/settings/connectors` | ChatGPT apps at `https://chatgpt.com/apps` (Notion connector ships with ChatGPT) | `gemini mcp add notion ...` via Notion official MCP | Notion official MCP in `opencode.json` | `https://developers.notion.com/docs/mcp` |
 | **Jira / Confluence** | native Atlassian connector at `https://claude.ai/settings/connectors` | Atlassian Rovo MCP via ChatGPT apps | `gemini mcp add atlassian ...` via Rovo | Rovo MCP in `opencode.json` | `https://www.atlassian.com/platform/remote-mcp-server` |
 | **Asana** | native connector at `https://claude.ai/settings/connectors` | ChatGPT apps if Asana enabled | community MCP, check `github.com/modelcontextprotocol/servers` | same MCP in `opencode.json` | verify source at install time |
-| **ClickUp** | no native connector — use community MCP via `npx skills add` or manual MCP config | same | same | same | verify latest active repo — this space churns |
-| **Todoist** | no native connector — community MCP | same | same | same | verify latest active repo |
-| **Trello** | no native connector — community MCP (low priority, Trello use is declining) | same | same | same | verify source |
+| **ClickUp** | no native connector — community MCP via `npx skills add` or manual MCP config | same | same | same | `@taazkareem/clickup-mcp-server` (most active, 170+ tools, SSE/stdio). Fallback: `@nazruden/clickup-server` |
+| **Todoist** | no native connector — community MCP | same | same | same | `abhiz123/todoist-mcp-server` (338+ stars, most popular). Fallback: `greirson/mcp-todoist` |
+| **Trello** | no native connector — community MCP (low priority, Trello use is declining) | same | same | same | `@delorenj/mcp-server-trello` (TypeScript, rate-limiting). Fallback: `mcp-trello` (Python/uvx) |
 
 **Important rule (same as Slack/Gmail):** do not invent MCP URLs or package names. Before you (the agent) instruct the user to paste a snippet, confirm the repo/URL exists. If the user is on Claude Code, prefer the native connector at `https://claude.ai/settings/connectors` over any community MCP — one click, OAuth'd, maintained by Anthropic, no GCP/API-keys dance.
 
@@ -38,6 +38,139 @@ Use `gemini mcp add`. Linear has a first-party remote MCP at `https://mcp.linear
 
 Add the MCP block to `~/.config/opencode/opencode.json` under the `mcp` key. Same structure as Slack/Gmail — pick `"type": "remote"` for URL-based MCPs, `"type": "local"` with `command` for stdio MCPs. Tell the user to edit the file themselves, show them the exact block to paste.
 
+## Community MCP install snippets (ClickUp / Todoist / Trello)
+
+When the user picks one of these three and their agent has no native connector, use the verified community servers below. Do not invent URLs — these have been verified as of 2025-05-15.
+
+### ClickUp — `@taazkareem/clickup-mcp-server`
+
+**Prerequisites:** ClickUp API key + Team ID (from URL `https://app.clickup.com/<TEAM_ID>/...`).
+
+**Claude Code** (`~/.claude.json`):
+```json
+{
+  "mcpServers": {
+    "flowhunt-clickup": {
+      "command": "npx",
+      "args": ["-y", "@taazkareem/clickup-mcp-server@latest"],
+      "env": {
+        "CLICKUP_API_KEY": "pk_...",
+        "CLICKUP_TEAM_ID": "12345678",
+        "DOCUMENT_SUPPORT": "true"
+      }
+    }
+  }
+}
+```
+
+**Gemini CLI:**
+```bash
+gemini mcp add clickup stdio -- npx -y @taazkareem/clickup-mcp-server@latest
+```
+Then set env vars `CLICKUP_API_KEY` and `CLICKUP_TEAM_ID` in your shell profile.
+
+**OpenCode** (`~/.config/opencode/opencode.json`):
+```jsonc
+{
+  "mcp": {
+    "flowhunt-clickup": {
+      "type": "local",
+      "command": ["npx", "-y", "@taazkareem/clickup-mcp-server@latest"],
+      "environment": {
+        "CLICKUP_API_KEY": "pk_...",
+        "CLICKUP_TEAM_ID": "12345678",
+        "DOCUMENT_SUPPORT": "true"
+      },
+      "enabled": true
+    }
+  }
+}
+```
+
+### Todoist — `abhiz123/todoist-mcp-server`
+
+**Prerequisites:** Todoist API token from https://todoist.com/app/settings/integrations/developer.
+
+**Claude Code** (`~/.claude.json`):
+```json
+{
+  "mcpServers": {
+    "flowhunt-todoist": {
+      "command": "npx",
+      "args": ["-y", "abhiz123/todoist-mcp-server"],
+      "env": {
+        "TODOIST_API_TOKEN": "..."
+      }
+    }
+  }
+}
+```
+
+**Gemini CLI:**
+```bash
+gemini mcp add todoist stdio -- npx -y abhiz123/todoist-mcp-server
+```
+
+**OpenCode** (`~/.config/opencode/opencode.json`):
+```jsonc
+{
+  "mcp": {
+    "flowhunt-todoist": {
+      "type": "local",
+      "command": ["npx", "-y", "abhiz123/todoist-mcp-server"],
+      "environment": {
+        "TODOIST_API_TOKEN": "..."
+      },
+      "enabled": true
+    }
+  }
+}
+```
+
+### Trello — `@delorenj/mcp-server-trello`
+
+**Prerequisites:** Trello API key + token from https://trello.com/app-key.
+
+**Claude Code** (`~/.claude.json`):
+```json
+{
+  "mcpServers": {
+    "flowhunt-trello": {
+      "command": "npx",
+      "args": ["-y", "@delorenj/mcp-server-trello"],
+      "env": {
+        "TRELLO_API_KEY": "...",
+        "TRELLO_TOKEN": "..."
+      }
+    }
+  }
+}
+```
+
+**Gemini CLI:**
+```bash
+gemini mcp add trello stdio -- npx -y @delorenj/mcp-server-trello
+```
+
+**OpenCode** (`~/.config/opencode/opencode.json`):
+```jsonc
+{
+  "mcp": {
+    "flowhunt-trello": {
+      "type": "local",
+      "command": ["npx", "-y", "@delorenj/mcp-server-trello"],
+      "environment": {
+        "TRELLO_API_KEY": "...",
+        "TRELLO_TOKEN": "..."
+      },
+      "enabled": true
+    }
+  }
+}
+```
+
+**Codex:** add the equivalent `[mcp_servers.flowhunt-clickup|todoist|trello]` block in `~/.codex/config.toml`.
+
 ## Fallback: user pastes tasks manually
 
 If the user says "I don't use any of those trackers" or "I use Notes / a text file / paper", do NOT skip this connector. Instead, ask:
@@ -60,3 +193,32 @@ During audit, the agent calls the tracker's MCP to collect:
 Content, not just titles. A task called "weekly report" with a description starting "Compile metrics from 4 dashboards and write 2 paragraphs" is 10x more actionable than just the title. For the top 20 most-repeated task patterns (same title recurring weekly, or variations like "client X monthly check-in"), include the full description.
 
 Do NOT read private/archived workspaces unless the user explicitly asked. Respect the tracker's own privacy scoping.
+
+---
+
+## Notion as document source (optional extended read)
+
+If the user chooses **Notion** as their task tracker, it often doubles as a knowledge base. After collecting tasks, the audit can optionally read recent Notion documents to detect process signals (SOP drafts, meeting notes, decision logs) that indicate where automation is already being considered.
+
+**What to collect from Notion (in addition to tasks):**
+
+1. **Recently edited pages** — last 30 days, created or updated by the user. Look for titles containing:
+   - `SOP`, `runbook`, `checklist`, `process`, `how to`
+   - `meeting notes`, `retrospective`, `standup`
+   - `decision`, `ADR`, `proposal`
+2. **Databases the user actively maintains** — pages whose `parent` is a database the user has edited recently. These often represent structured workflows (CRM, content calendar, bug tracker) that are prime automation candidates.
+3. **Content, not just titles** — for the top 5 most-recent process-oriented pages, read the first 500 words or the page's `properties.summary` if available. A half-written SOP titled "How to onboard a client" is a direct signal that this workflow should be automated.
+
+**How to collect:**
+
+Use the `notion-mcp-server` tools (same server as for tasks):
+- `search` with `filter: {property: "object", value: "page"}` to find recently edited pages
+- `retrieve_page` for page metadata (created_time, last_edited_time, parent database)
+- `query_database` for databases the user interacts with
+
+**Privacy guardrails:**
+- Only read pages where the user is the `last_edited_by` or `created_by` — skip pages edited by teammates.
+- Skip pages in workspaces explicitly marked as `archived` or `private` by the Notion API.
+- If the user says "I use Notion only for tasks, not docs", respect that and skip the extended read.
+
+**Write location:** Save Notion document metadata to `raw/notion_docs.json` alongside `raw/notion_tasks.json`. Each entry should contain: `page_id`, `title`, `url`, `last_edited_time`, `word_count_preview`, `signals_detected[]`.

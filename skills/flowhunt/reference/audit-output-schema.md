@@ -16,6 +16,7 @@ Each audit run writes to a per-date folder, not a single file:
       calendar.json               # Calendar events list
       slack.json                  # Slack data if collected
       tasks.json                  # Live tracker output (Linear, Notion, ...)
+      notion_docs.json            # Notion pages/databases if Notion is task tracker
       tasks.md                    # Copy of ~/.flowhunt/tasks.md if user is in manual mode
       user-proposed.md            # Raw user answers to "what would YOU automate?"
       intake.json                 # What the user answered during setup
@@ -61,6 +62,22 @@ goal_anchor: <one-line copy of workflow_context.goal — for diffing across audi
 <Two sentences max. #1 thing to automate first and why. If data is thin, say so here.>
 
 **Estimated time saved:** <one short string, e.g. "4-6h / week">
+
+## Changes since last audit
+
+*Only present when a previous audit exists. See `audit-diff.md` for generation rules.*
+
+### New since last audit
+- ...
+
+### Resolved / improved
+- ...
+
+### Persistent
+- ...
+
+### Data quality delta
+- ...
 
 ## Patterns
 
