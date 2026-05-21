@@ -108,7 +108,7 @@ Now ask the technical questions about which tools you'll wire up. **One at a tim
 > - Inne (IMAP, Apple Mail, Proton, ...)
 > - Pomiń
 
-Record `email = gmail | outlook | other | skip`. For Outlook/other, warn: "Podepniemy przez IMAP z hasłem aplikacji, działa ale setup chwilę dłuższy niż Gmail. OK?"
+Record `email = gmail | outlook | other | skip`. For `other` (Proton, Apple Mail, generic IMAP), warn: "Podepniemy przez IMAP z hasłem aplikacji, działa ale setup chwilę dłuższy niż natywny connector. OK?" For `outlook`, no warning needed — Claude Code and Codex have a native Microsoft 365 connector (see Step 3).
 
 **Q2 — calendar:**
 > Czy używasz kalendarza którego ma dotknąć audit?
@@ -306,11 +306,11 @@ After install, go back to 2d (launch).
 
 ## Step 3 — Email (branches on intake)
 
-Read the matching section in `connectors/google-workspace.md`. Branch on `email`:
+Read the matching section in `connectors/email-calendar.md`. Branch on `email`:
 
-- `gmail` → follow the Google Workspace path for your detected agent
-- `outlook` → inform user "Outlook nie jest w v1 przez natywne konektory, podepnę przez IMAP" and follow the IMAP fallback section with `outlook.office365.com:993`
-- `other` → same as outlook with user-supplied IMAP host
+- `gmail` → follow the **Google Workspace** section, the path for your detected agent
+- `outlook` → follow the **Microsoft 365** section, the path for your detected agent. Claude Code and Codex have an official native connector; Gemini CLI / OpenCode fall back to IMAP (personal Outlook.com) or skip (business M365). Ask first whether it's a business tenant or a personal Outlook.com account — the connector file explains why it matters.
+- `other` → **IMAP fallback** section with the user-supplied IMAP host
 - `skip` → "Pomiń mail zgodnie z twoim wyborem. Audit bedzie bez sygnału z maila."
 
 **Per-agent Gmail paths:**
@@ -331,8 +331,8 @@ After each connector, **verify**. Actually try a tool call. If verification fail
 
 Branch on `calendar`:
 
-- `google` → follow `connectors/google-workspace.md` Calendar section. For `codex`, `claude-code`, `gemini` the flow is identical to Gmail — same settings page, one extra click. For `opencode` there is no clean path → tell the user: "Dla OpenCode nie ma czystej ścieżki do Calendar bez Google Cloud projektu. Pomijam."
-- `outlook` → no clean path in v1. Tell the user: "Outlook Calendar nie ma czystej ścieżki w v1 bez konta Azure. Pomijam."
+- `google` → follow `connectors/email-calendar.md` **Google Workspace** section. For `codex`, `claude-code`, `gemini` the flow is identical to Gmail — same settings page, one extra click. For `opencode` there is no clean path → tell the user: "Dla OpenCode nie ma czystej ścieżki do Calendar bez Google Cloud projektu. Pomijam."
+- `outlook` → follow `connectors/email-calendar.md` **Microsoft 365** section. For `claude-code` the Microsoft 365 connector covers Teams Calendar in the same connect step as Outlook mail — no extra click. For `codex` enable the **Outlook Calendar** app alongside Outlook Email. For `gemini` / `opencode` there is no native path → "Outlook Calendar bez natywnego connectora pomijam, audit pójdzie na ActivityWatch i taski."
 - `skip` → skip.
 
 ---

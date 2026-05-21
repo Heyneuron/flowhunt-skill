@@ -105,7 +105,7 @@ skills/flowhunt/
     audit-output-schema.md          # exact format for audit.md + raw/
   connectors/
     activitywatch.md                # install per OS + browser extension (the core source)
-    google-workspace.md             # Gmail + Calendar per agent
+    email-calendar.md               # Gmail + Google Calendar / Outlook + M365, per agent
     task-trackers.md                # Linear / Notion / Jira / ... per agent
     slack.md                        # native connector + OSS fallback
     messaging.md                    # iMessage / Telegram / Discord
